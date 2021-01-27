@@ -9,10 +9,10 @@ This is the first and only *individual* (as opposed to *team*) this semester.
 
 Term: Spring 2021
 
-+ Projec title: Are mail-in ballots causes for the 'fradulent mess'?
++ Projec title: Mail-in ballots: cause for the 'fradulent mess'?
 + This project is conducted by [Ellen Chen]
 
-+ Project summary: **2020 Exploratory Testing Survey** contains responses from 3080 adult citizens across the United States to questions of the 2020 Election. The data was collected in April 2020, almost a half year before the Election Day. Since the 2020 election admitted more mail-in ballots than ever, a series of problems towards the election integrity and fraud arised and caused a massive 'fradulent mess'. In the survey, questions towards vote in-person vs. vote in mail have been addressed. After taking a close look at the survey data, I'd like to find the answers to the following three questions: 
++ Project summary: **2020 Exploratory Testing Survey** contains responses from 3080 adult citizens across the United States to questions about the 2020 Election. The survey data was collected in April 2020, a half year before the Election Day. Since the 2020 election admitted more mail-in ballots than usual, a series of problems towards the election integrity and fraud arised and caused a massive post-election 'fradulent mess'.
 
 + Are mail-in ballots the potential causes for the 'fradulent mess'?
 
