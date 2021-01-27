@@ -1,93 +1,184 @@
 ---
-title: "ADS project 1"
+title: "Mail-in ballots: cause for the 'fradulent mess'?"
 author: "Ellen Chen"
-date: "1/20/2021"
 output:
   html_document: default
-  pdf_document: default
 ---
 
-# Are mail-in ballots causes for the 'fradulent mess'?
+```{r, echo=FALSE}
+knitr::include_graphics("ballots cartoon.png")
+```
 
-## Introduction
-**2020 Exploratory Testing Survey** contains responses from 3080 adult citizens across the United States to questions of the 2020 Election. The data was collected in April 2020, almost a half year before the Election Day. Since the 2020 election admitted more mail-in ballots than ever, a series of problems towards the election integrity and fraud arised and caused a massive 'fradulent mess'. In the survey, questions towards vote in-person vs. vote in mail have been addressed. After taking a close look at the survey data, I'd like to find the answers to the following three questions: 
+### Introduction
 
-+ Are mail-in ballots the potential causes for the 'fradulent mess'?
+**2020 Exploratory Testing Survey** contains responses from 3080 adult citizens across the United States to questions about the 2020 Election. The survey data was collected in April 2020, a half year before the Election Day. Since the 2020 election admitted more mail-in ballots than usual, a series of problems towards the election integrity and fraud arised and caused a massive post-election 'fradulent mess'. 
 
-+ Will president-elect Joe Biden win/lose a lot based on the survey data?
+In the questionaire, questions towards vote in-person vs. vote by mail have been addressed. After analyzing the survey data, I'd like to answer the following three questions: 
 
-+ Do Democrats favor voting by mail more than Republicans? 
++ **Is mail-in ballot a potential cause for the 'fradulent mess'?**
 
++ **Will president-elect Joe Biden win/lose a lot based on the survey data?**
 
-```{r, message=FALSE, warning=FALSE}
-# Load R packages that will be used in this project
++ **Do Democrats favor voting by mail more than Republicans?**
+
+```{r load packages, message=FALSE, warning=FALSE, echo=FALSE}
 library(tidyverse)
 library(dplyr)
-library(ggplot2)
 library(tibble)
+library(ggplot2)
 ```
 
-```{r, message=FALSE, warning=FALSE}
-# Load Dataset
+```{r read data, warning=FALSE, message=FALSE, echo=FALSE}
 anes_pilot_2020ets_csv <- read.csv("~/Desktop/anes_pilot_2020ets_csv/anes_pilot_2020ets_csv.csv")
-dim(anes_pilot_2020ets_csv)
 ```
 
-## Are mail-in ballots the potential causes for the 'fradulent mess'?
-In the survery, under ELECTORAL INTEGRITY section, questions towards "Do you favor or oppose conducting all elections by mail?" and "How much do you trust that votes are counted accurately when people mail in their ballots?" have been asked. 
+```{r export data, echo=FALSE}
+anes_data <- anes_pilot_2020ets_csv[,c("votemail1a", "votemail1b", "votecount", "vote20jb")]
+write.csv(anes_data, "~/Desktop/anes_data.csv")
+```
 
-```{r, message=FALSE, warning=FALSE}
-# Read the data from this problem with column name "votemail1a"
-Q1 <- anes_pilot_2020ets_csv[,'votemail1a']
-Q1 <- data.frame(Q1)
+Some basic summaries of the raw dataset:
++ There are `r nrow(anes_pilot_2020ets_csv)` respondents
++ There are `r ncol(anes_pilot_2020ets_csv)` variables
+
+Each column correponds to one question in the survey. To find the pdf version of the questionaire: https://electionstudies.org/data-center/2020-exploratory-testing-survey/
+
+Though many questions have been addressed in the questionaire, in this project, I will only focus on four of them. I processed the raw dataset and extract the corresponding four columns, and saved the new dataset in **data** file called "anes_data.csv". 
+
+### Question 1: Is mail-in ballot a potential cause for the 'fradulent mess'?
+```{r, echo=FALSE}
+knitr::include_graphics("trust_mail_in.png")
+```
+
+In the ANES pilot 2020 questionaire, under **ELECTORAL INTEGRITY** section, respondents are asked whether they favor or oppose mail-in ballots and how accurate do they think the votes will be. 
+
+Let's take a look at the answers to **votemail1a** and **votemail1b**:
+```{r votemail1a, message=FALSE, warning=FALSE, echo=FALSE}
+# Read answers corresponding to "votemail1a" column
+Q1a <- anes_data[, 'votemail1a']
+Q1a <- data.frame(Q1a)
 # Factors of the answer 
-factor(Q1)
+factor(Q1a)
 ```
-Since the survey has been generated randomly by two different forms. In this question, people who received Form 2 have their answer in '88'. In our data analysis, we should exclude these records and only keep the answers from 1-7. Records correpond to row #1 to #1499 are answered by '88', so ignore these records. 
+```{r votemail1b, message=FALSE, warning=FALSE, echo=FALSE}
+# Read answers corresponding to "votemail1b" column
+Q1b <- anes_data[, 'votemail1b']
+Q1b <- data.frame(Q1b)
+factor(Q1b)
+```
+```{r combine votemail1a + votemail1b, message=FALSE, warning=FALSE, echo=FALSE}
+anes_data[, 'votemail'] = ''
+anes_data$votemail[1:1499] = anes_data$votemail1a[1:1499]
 
-```{r, message=FALSE, warning=FALSE}
+anes_data$votemail[1500:3080] = anes_data$votemail1b[1500:3080]
+```
+The survey has been generated randomly by two different forms. In this question, people who received Form 2 have their answer in '**88**' under 'votemail1a' column. Records correpond to row #1500 to #3080 are answered by '**88**'. Similarly, under 'votemail1b' column, row #1 to #1499 are answered by '**77**'. Combine the two questions into one column named '**votemail**' and plot the distribution of answers out.
+```{r plot, message=FALSE, warning=FALSE, echo=FALSE}
 # Question 1: Do you favor or oppose conducting all elections by mail, instead of people voting in-person?
-Q1 <- anes_pilot_2020ets_csv[,  'votemail1a']
+Q1 <- anes_data[, 'votemail']
 Q1 <- data.frame(Q1)
-ggplot(data=Q1)+
-  geom_bar(aes(Q1, fill=factor(Q1)))+
-  coord_cartesian(xlim = c(1,7),ylim = c(0,500))+
-  labs(x="Answers", title="Favor or Oppose Mail-in Ballots")+
-  scale_fill_discrete(name="Answer", labels=c("1.Favor a great deal","2.Favor moderately","3.Favor a little","4.Neither favor nor oppose","5.Oppose a little","6.Oppose moderately","7.Oppose a great deal"))
+ggplot(data = Q1) +
+  geom_bar(aes(Q1, fill = factor(Q1))) +
+  coord_cartesian(xlim = c(1,7)) +
+  labs(x = "Answers", title = "Attitudes toward Mail-in Ballots") +
+  scale_fill_discrete(name = "Answer", labels = c("1.Favor a great deal",
+                                                  "2.Favor moderately",
+                                                  "3.Favor a little",
+                                                  "4.Neither favor nor oppose",
+                                                  "5.Oppose a little",
+                                                  "6.Oppose moderately",
+                                                  "7.Oppose a great deal"))+
+  theme(plot.title = element_text(size = 14, hjust = 0.5),
+        text = element_text(size = 9, face = "bold", family = "Comic Sans MS"),
+        legend.position = "bottom")
 ```
-Under the pandemic, lots of people favor mail-in ballots. So do they trust the accuracy of counting ballots?
 
-```{r, message=FALSE, warning=FALSE}
-# Question 2: In the November 2020 general election, how accurately do you think the votes will be counted?
-Q2 <- anes_pilot_2020ets_csv[,'votecount']
+##### Obviously from the above plot, more people favor mail-in ballots than people who oppose. 
+
+##### Do these people who favor mail-in ballots really trust the accuracy of the election result?
+
+
+#### Among those who favor mail-in ballots, how much do they trust the accuracy of the counting process? 
+```{r votecount, message=FALSE, warning=FALSE, echo=FALSE}
+# Exclude those who neither favor nor oppose and those who oppose mail-in ballots, only focus on those who favor mail-in ballots
+Q2 <- anes_data[(anes_data$votemail == 1 | 
+                              anes_data$votemail == 2 |
+                              anes_data$votemail == 3), 'votecount']
 Q2 <- data.frame(Q2)
-ggplot(data=Q2) +
-   geom_bar(aes(Q2,fill=factor(Q2))) +
-   coord_flip(xlim = c(1,5)) +
-   labs(x="Answers", title="Accuracy of Counting") +
-   scale_fill_discrete(name="Answer", labels=c("1.Not at all accurately","2.Not very accurately","3.Moderately accurately","4.Very accurately","5.Completely accurately"))
+ggplot(data = Q2) +
+   geom_bar(aes(Q2, fill = factor(Q2))) +
+   coord_flip(xlim = c(0.5,5.5)) +
+   labs(x = "Answers", title = "Attitudes toward Accuracy") +
+   scale_fill_discrete(name = "Answer", labels = c("1.Not at all accurately",
+                                                   "2.Not very accurately",
+                                                   "3.Moderately accurately",
+                                                   "4.Very accurately",
+                                                   "5.Completely accurately")) +
+   theme(plot.title = element_text(size = 14, hjust = 0.5),
+        text = element_text(size = 10, face = "bold", family = "Comic Sans MS"),
+        legend.position = "right")
 ```
-While more than half favor mail-in ballot, there are still lots of people think the mail-in ballot counting process would be moderately accurate. 
-### Mail-in ballots could be the potential causes for the 'fradulent mess'.
+
+##### Among those who favor mail-in ballots, there is still 1/6 people who do not trust the voting would be accurate. Let alone the population who oppose mail-in ballots. Thus we can conclude that the mail-in ballot is at least a potential cause for the 'fradulent mess'.
+
+```{r, echo=FALSE}
+knitr::include_graphics("fradulent mess.png")
+```
 
 
-## Will president-elect Joe Biden win/lose a lot based on the survey data?
-```{r, message=FALSE, warning=FALSE}
-# If the 2020 presidential election were between Donald Trump for the Republicans and Joe Biden for the Democrats, would you vote for Donald Trump, Joe Biden, someone else, or probably not vote?
-Q5 <- anes_pilot_2020ets_csv[, 'vote20jb']
-Q5 <- data.frame(Q5)
-ggplot(data=Q5) +
-   geom_bar(aes(Q5, fill=factor(Q5))) +
+
+
+### Question 2: Would Joe Biden win/lose a lot based on the survey data? Did the survey reflect the reality of 2020 election result? If not, what are the potential reasons?
+```{r vote20jb, message=FALSE, warning=FALSE, echo=FALSE}
+Q2ans <- anes_data[, 'vote20jb']
+Q2ans <- data.frame(Q2ans)
+ggplot(data=Q2ans) +
+   geom_bar(aes(Q2ans, fill=factor(Q2ans))) +
    coord_cartesian(xlim = c(0,5)) +
    labs(x="Answers", title="Joe Biden v.s. Donald Trump") +
-   scale_fill_discrete(name="Answer", labels=c("1.Donald Trump","2.Joe Biden","3.Someone else","4.Probably not vote"))
+   scale_fill_discrete(name="Answer", labels=c("1.Donald Trump",
+                                               "2.Joe Biden",
+                                               "3.Someone else",
+                                               "4.Probably not vote")) +
+   theme(plot.title = element_text(size = 14, hjust = 0.5),
+        text = element_text(size = 10, face = "bold", family = "Comic Sans MS"),
+        legend.position = "right")
 
 ```
+```{r percentage, message=FALSE, warning=FALSE}
+# number of respondents who will vote for Donald Trump
+DT <- sum(anes_data$vote20jb == 1)
+# number of respondents who will vote for Joe Biden
+JB <- sum(anes_data$vote20jb == 2)
+# percentage of Joe Biden's votes more than Donald Trump's
+percentJB <- (JB-DT)/DT
+```
 
-From the survey, people who will vote for Joe Biden is slighly more than those who will vote for Donald Trump. Based on the survey data, Joe Biden would possibly win the election but not by a lot. But it is worth mentioning that the sample size is 3080 of the survey which is small. It could contain some biases. 
+```{r pressure, echo=FALSE}
+knitr::include_graphics("2020_election_result.png")
+```
 
-## Do Democrats favor voting by mail more than Republicans?
+```{r, message=FALSE, warning=FALSE}
+percent_real <- (81281888-74223251)/74223251
+```
+
+From the survey data, Joe Biden will win `r percentJB * 100` % more than Donald Trump. From the final 2020 election result, Joe Biden won 81,281,888 votes, Donald Trump won 74,223,251 votes. Joe won `r percent_real * 100` % more than Donald Trump. The survey data did not reflect the true result of the final election result. 
+
+Some potential causes: 
+
++ respondent changed their mind
++ survey bias (sample size small)
++ 'fradulent' reasons...
+
+
+
+### Question 3: Do Democrats favor voting by mail more than Republicans?
+```{r, echo=FALSE}
+knitr::include_graphics("mail.png")
+```
+
 From previous two questions, do Democrats (or people who vote for Biden) favor voting in-mail more than Republicans (or people who vote for Trump)?
+
 I would like to categorize data into four groups:
 
 + Democrats favor mail-in
@@ -96,19 +187,47 @@ I would like to categorize data into four groups:
 + Republicans oppose mail-in
 
 ```{r, message=FALSE, warning=FALSE}
-anes_pilot_2020ets_csv["Demo_Rep"] = ''
-anes_pilot_2020ets_csv[((anes_pilot_2020ets_csv['votemail1a']==1)|(anes_pilot_2020ets_csv['votemail1a']==2)|(anes_pilot_2020ets_csv['votemail1a']==3))&(anes_pilot_2020ets_csv['vote20jb']==2), "Demo_Rep"] = 'Democrats favor mail-in' 
+anes_data["Demo_Rep"] = ''
 
-anes_pilot_2020ets_csv[((anes_pilot_2020ets_csv['votemail1a']==5)|(anes_pilot_2020ets_csv['votemail1a']==6)|(anes_pilot_2020ets_csv['votemail1a']==7))&(anes_pilot_2020ets_csv['vote20jb']==2), "Demo_Rep"] = 'Democrats oppose mail-in' 
+anes_data[((anes_data['votemail1a']==1) |
+                        (anes_data['votemail1a']==2) |
+                        (anes_data['votemail1a']==3))&
+                        (anes_data['vote20jb']==2), "Demo_Rep"] = 'Democrats favor mail-in' 
 
-anes_pilot_2020ets_csv[((anes_pilot_2020ets_csv['votemail1a']==1)|(anes_pilot_2020ets_csv['votemail1a']==2)|(anes_pilot_2020ets_csv['votemail1a']==3))&(anes_pilot_2020ets_csv['vote20jb']==1), "Demo_Rep"] = 'Republicans favor mail-in' 
+anes_data[((anes_data['votemail1a']==5) |
+                        (anes_data['votemail1a']==6) |
+                        (anes_data['votemail1a']==7))&
+                        (anes_data['vote20jb']==2), "Demo_Rep"] = 'Democrats oppose mail-in' 
 
-anes_pilot_2020ets_csv[((anes_pilot_2020ets_csv['votemail1a']==5)|(anes_pilot_2020ets_csv['votemail1a']==6)|(anes_pilot_2020ets_csv['votemail1a']==7))&(anes_pilot_2020ets_csv['vote20jb']==1), "Demo_Rep"] = 'Republicans oppose mail-in'
+anes_data[((anes_data['votemail1a']==1) |
+                        (anes_data['votemail1a']==2) |
+                        (anes_data['votemail1a']==3))&
+                        (anes_data['vote20jb']==1), "Demo_Rep"] = 'Republicans favor mail-in' 
+
+anes_data[((anes_data['votemail1a']==5) |
+                        (anes_data['votemail1a']==6) |
+                        (anes_data['votemail1a']==7))&
+                        (anes_data['vote20jb']==1), "Demo_Rep"] = 'Republicans oppose mail-in'
+
+anes_data[anes_data$Demo_Rep == "", "Demo_Rep"] <- NA
 ```
 
-```{r}
-ggplot(data=anes_pilot_2020ets_csv)+
-  geom_bar(aes(x=Demo_Rep,fill=Demo_Rep))
+```{r Demo_Rep, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data=na.omit(anes_data))+
+  geom_bar(aes(x=Demo_Rep, fill=Demo_Rep))+
+   scale_fill_manual(values=c("#0000FF", "#0000FF","#FF0000","#FF0000"))+
+   coord_flip()+
+   labs(x="",title = "Democrats vs Republicans")+
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        text = element_text(size = 10, face = "bold", family = "Comic Sans MS"),
+        legend.position = "None")
 ```
 
-### Democrats seems to favor mail-in ballots a lot while the Republicans are Ok with both mail-in and in-person voting.
+##### Democrats favor mail-in ballots more than Republicans, around half Republicans favor mail-in ballots while also half of them oppose mail-in. 
+
+
+### Conclusion
+Due to the pandemic, a lot of people favor mail-in ballots. But this also increases the risk of non-accurate counting process. And people who vote for the Democrat tend to favor mail-in ballots more than people who support the Republican. This could also explain what happened after the election in Washington D.C. 
+```{r, echo=FALSE}
+knitr::include_graphics("every_vote_counts.png")
+```
